@@ -18,7 +18,7 @@ import org.json.JSONObject;
 public class History {
     private final List<HistoryEntry> list;
     private static final String[] COLUMNS = new String[] {
-        "URL",
+        "title",
         "created",
         "modified",
         "#",
@@ -54,7 +54,7 @@ public class History {
         HistoryEntry entry = this.list.get(row);
         switch (col) {
         case 0:
-            return entry.url;
+            return entry.title;
         case 1:
             return dateToHumanReadable(entry.startDate);
         case 2:
@@ -68,7 +68,7 @@ public class History {
         }
     }
     private String dateToHumanReadable(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return sdf.format(date);
     }
 

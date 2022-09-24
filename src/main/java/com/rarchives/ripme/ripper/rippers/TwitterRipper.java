@@ -1,5 +1,7 @@
 package com.rarchives.ripme.ripper.rippers;
 
+import static com.rarchives.ripme.App.logger;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -319,4 +322,33 @@ public class TwitterRipper extends AbstractJSONRipper {
         addURLToDownload(url, getPrefix(index));
     }
 
+    @Override
+    public String getAlbumTitle(URL url) throws MalformedURLException {
+        if (albumType.equals(ALBUM_TYPE.ACCOUNT)) {
+            try {
+                if (StringUtils.isEmpty(accessToken)) {
+                    getAccessToken();
+                }
+                String req = "https://api.twitter.com/1.1/users/show.json?screen_name=" + accountName;
+                Document doc = Http.url(req)
+                    .ignoreContentType()
+                    .header("Authorization", "Bearer " + accessToken)
+                    .header("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8")
+                    .header("User-agent", "ripe and zipe").get();
+                String body = doc.body().html().replaceAll("&quot;", "\"");
+                Object jsonObj = new JSONTokener(body).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    JSONObject json = (JSONObject) jsonObj;
+                    if (json.has("errors")) {
+                        String msg = json.getJSONObject("errors").getString("message");
+                        throw new IOException("Twitter responded with errors: " + msg);
+                    }
+                    return getHost() + "_" + getGID(url) + "_" + json.getString("name");
+                }
+            } catch (IOException e) {
+                LOGGER.error("TwitterRipper getAlbumTitle Error.", e);
+            }
+        }
+        return super.getAlbumTitle(url);
+    }
 }
