@@ -386,8 +386,8 @@ public final class MainWindow implements Runnable, RipStatusHandler {
 
         historyPanel = new JPanel(new GridBagLayout());
         historyPanel.setBorder(emptyBorder);
-        historyPanel.setVisible(false);
-        historyPanel.setPreferredSize(new Dimension(300, 250));
+        historyPanel.setVisible(true);
+        historyPanel.setPreferredSize(new Dimension(900, 500));
         historyTableModel = new AbstractTableModel() {
             private static final long serialVersionUID = 1L;
 
