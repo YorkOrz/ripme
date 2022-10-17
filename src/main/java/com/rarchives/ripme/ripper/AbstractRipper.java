@@ -123,18 +123,29 @@ public abstract class AbstractRipper
     public String normalizeUrl(String url) {
         return url;
     }
-    
+
     /**
      * Checks to see if Ripme has already downloaded a URL
      * @param url URL to check if downloaded
-     * @return 
+     * @return
      *      Returns true if previously downloaded.
      *      Returns false if not yet downloaded.
      */
-    protected boolean hasDownloadedURL(String url) {
+    protected boolean hasDownloadedURL(String url, String curFileName) {
+        try {
+            String topFolderName = workingDir.getCanonicalPath();
+            List<String> fileNames = getFileNames(topFolderName);
+            for (String fileName : fileNames) {
+                if (fileName.contains(curFileName)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("[!] Error hasDownloadedURL:", e);
+        }
+
         File file = new File(URLHistoryFile);
         url = normalizeUrl(url);
-
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 final String lineFromFile = scanner.nextLine();
@@ -149,6 +160,20 @@ public abstract class AbstractRipper
         return false;
     }
 
+    public static List<String> getFileNames(String path) {
+        ArrayList<String> files = new ArrayList<>();
+        File file = new File(path);
+        File[] tempList = file.listFiles();
+
+        if (tempList != null) {
+            for (File value : tempList) {
+                if (value.isFile()) {
+                    files.add(value.getName());
+                }
+            }
+        }
+        return files;
+    }
 
     /**
      * Ensures inheriting ripper can rip this URL, raises exception if not.
@@ -291,9 +316,10 @@ public abstract class AbstractRipper
                 e.printStackTrace();
             }
         }
+        String saveAs = getFileName(url, fileName, extension);
         // Don't re-add the url if it was downloaded in a previous rip
         if (Utils.getConfigBoolean("remember.url_history", true) && !isThisATest()) {
-            if (hasDownloadedURL(url.toExternalForm())) {
+            if (hasDownloadedURL(url.toExternalForm(), saveAs)) {
                 sendUpdate(STATUS.DOWNLOAD_WARN, "Already downloaded " + url.toExternalForm());
                 alreadyDownloadedUrls += 1;
                 return false;
@@ -306,7 +332,6 @@ public abstract class AbstractRipper
             return false;
         }
         LOGGER.debug("url: " + url + ", prefix: " + prefix + ", subdirectory" + subdirectory + ", referrer: " + referrer + ", cookies: " + cookies + ", fileName: " + fileName);
-        String saveAs = getFileName(url, fileName, extension);
         File saveFileAs;
         try {
             if (!subdirectory.equals("")) {
