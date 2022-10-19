@@ -73,11 +73,11 @@ public class TwitterRipper extends AbstractJSONRipper {
             }
             return url;
         }
-        p = Pattern.compile("^https?://(m\\.)?twitter\\.com/([a-zA-Z0-9\\-_]+).*$");
+        p = Pattern.compile("^https?://((m|mobile)\\.)?twitter\\.com/([a-zA-Z0-9\\-_]+).*$");
         m = p.matcher(url.toExternalForm());
         if (m.matches()) {
             albumType = ALBUM_TYPE.ACCOUNT;
-            accountName = m.group(2);
+            accountName = m.group(3);
             return url;
         }
         throw new MalformedURLException("Expected username or search string in url: " + url);
